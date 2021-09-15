@@ -1,14 +1,14 @@
 type Dataflow a = [a]
 
-initial:: a -> Dataflow a -> Dataflow a
-initial init d = init : d
-
 inv = map not
+
+reg:: a -> Dataflow a -> Dataflow a
+reg init d = init : d
 
 tff = q
    where 
-       q = initial False d
-       d = inv q -- note recursive values
+       q = reg False d
+       d = inv q -- note recursive equations
 
 -- functional semantics eliminates the need for fork
 
@@ -47,11 +47,11 @@ down x = y
     where 
        y =  tgate a x
        a = gate x b
-       b = initial True $ inv a
+       b = reg True $ inv a
 
 up x = y
     where 
        y =  merge b x x
        a = gate y b
-       b = initial True $ inv a
+       b = reg True $ inv a
   

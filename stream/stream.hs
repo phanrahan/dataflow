@@ -1,6 +1,19 @@
 type Stream a = [a]
 
 
+s_zip :: Stream a -> Stream b -> Stream (a, b)
+s_zip = zip
+
+s_fst :: Stream (a, b) -> Stream a
+s_fst = map fst
+
+s_snd :: Stream (a, b) -> Stream b
+s_snd = map snd
+
+
+c_not :: Stream Bool -> Stream Bool 
+c_not = map not
+
 c_and :: Stream (Bool, Bool) -> Stream Bool
 c_and = map (uncurry (&&))
 
@@ -9,18 +22,6 @@ c_or = map (uncurry (||))
 
 c_xor :: Stream (Bool, Bool) -> Stream Bool 
 c_xor = map (uncurry (/=))
-
-c_not :: Stream Bool -> Stream Bool 
-c_not = map not
-
-s_zip :: Stream a -> Stream b -> Stream (a, b)
-s_zip (x:xs) (y:ys) = (x, y) : zip xs ys
-
-s_proj1 :: Stream (a, b) -> Stream a
-s_proj1 ((x, y):xys) = x : s_proj1 xys
-
-s_proj2 :: Stream (a, b) -> Stream b
-s_proj2 ((x, y):xys) = y : s_proj2 xys
 
 
 reg:: a -> Stream a -> Stream a
@@ -44,7 +45,7 @@ ha x c = s_zip (c_xor xc) (c_and xc)
      xc = s_zip x c
 
 count1 :: Stream Bool -> Stream (Bool, Bool)
-count1 cin = s_zip c (s_proj2 sc)
+count1 cin = s_zip c (s_snd sc)
   where
      sc = ha c cin
-     c = reg False (s_proj1 sc)
+     c = reg False (s_fst sc)

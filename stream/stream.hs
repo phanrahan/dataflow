@@ -4,11 +4,17 @@ type Stream a = [a]
 s_zip :: Stream a -> Stream b -> Stream (a, b)
 s_zip = zip
 
+s_dup :: Stream a -> Stream (a, a)
+s_dup s = s_zip s s
+
 s_fst :: Stream (a, b) -> Stream a
 s_fst = map fst
 
 s_snd :: Stream (a, b) -> Stream b
 s_snd = map snd
+
+s_join :: (Stream a -> Stream c) -> (Stream b -> Stream d) -> Stream (a, b) -> Stream (c, d)
+s_join f g s = s_zip (f $ s_fst s) (g $ s_snd s)
 
 
 c_not :: Stream Bool -> Stream Bool 
@@ -39,13 +45,17 @@ tff = q
     q = reg False d
     d = c_not q -- note recursive equations
 
-ha :: Stream Bool -> Stream Bool -> Stream (Bool, Bool)
-ha x c = s_zip (c_xor xc) (c_and xc) 
-   where 
-     xc = s_zip x c
+ha :: Stream (Bool, Bool) -> Stream (Bool, Bool)
+ha = (s_join c_xor c_and) . s_dup
 
 count1 :: Stream Bool -> Stream (Bool, Bool)
 count1 cin = s_zip c (s_snd sc)
   where
-     sc = ha c cin
+     sc = ha $ s_zip c cin
      c = reg False (s_fst sc)
+
+count2 :: Stream Bool -> Stream ((Bool, Bool), Bool)
+count2 cin = s_zip (s_zip (s_fst sc0) (s_fst sc1)) (s_snd sc1)
+  where
+     sc0 = count1 cin
+     sc1 = count1 (s_snd sc0)

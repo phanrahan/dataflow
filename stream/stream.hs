@@ -1,20 +1,30 @@
 type Stream a = [a]
 
+s_id :: Stream a -> Stream a
+s_id x = x
 
-s_zip :: Stream a -> Stream b -> Stream (a, b)
-s_zip = zip
+-- s_comp
+
+-- s_const
+
+s_prod :: Stream a -> Stream b -> Stream (a, b)
+s_prod = zip
 
 s_dup :: Stream a -> Stream (a, a)
-s_dup s = s_zip s s
+s_dup s = s_prod s s
 
-s_fst :: Stream (a, b) -> Stream a
-s_fst = map fst
+s_exl :: (Stream a -> Stream c) -> Stream (a, b) -> Stream c
+s_exl f = f . (map fst)
 
-s_snd :: Stream (a, b) -> Stream b
-s_snd = map snd
+s_exr :: (Stream b -> Stream c) -> Stream (a, b) -> Stream c
+s_exr f = f . (map snd)
 
-s_join :: (Stream a -> Stream c) -> (Stream b -> Stream d) -> Stream (a, b) -> Stream (c, d)
-s_join f g s = s_zip (f $ s_fst s) (g $ s_snd s)
+s_fst = s_exl id
+s_snd = s_exr id
+
+
+s_join :: (Stream a -> Stream b) -> (Stream a -> Stream c) -> Stream a -> Stream (b, c)
+s_join f g s = s_prod (f s) (g s)
 
 
 c_not :: Stream Bool -> Stream Bool 
@@ -46,16 +56,16 @@ tff = q
     d = c_not q -- note recursive equations
 
 ha :: Stream (Bool, Bool) -> Stream (Bool, Bool)
-ha = (s_join c_xor c_and) . s_dup
+ha = s_join c_xor c_and
 
 count1 :: Stream Bool -> Stream (Bool, Bool)
-count1 cin = s_zip c (s_snd sc)
+count1 cin = s_prod c (s_snd sc)
   where
-     sc = ha $ s_zip c cin
+     sc = ha $ s_prod c cin
      c = reg False (s_fst sc)
 
 count2 :: Stream Bool -> Stream ((Bool, Bool), Bool)
-count2 cin = s_zip (s_zip (s_fst sc0) (s_fst sc1)) (s_snd sc1)
+count2 cin = s_prod (s_prod (s_fst sc0) (s_fst sc1)) (s_snd sc1)
   where
      sc0 = count1 cin
      sc1 = count1 (s_snd sc0)

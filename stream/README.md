@@ -13,3 +13,8 @@ ghci> take 2 tff
 [False, True]
 ghci> take 4 lo
 [False, False, False, False]
+
+ghci> take 10 $ ts
+ghci> take 10 $ fs
+ghci> take 5 $ count2 ts
+
